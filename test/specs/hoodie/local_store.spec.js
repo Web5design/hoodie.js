@@ -1047,6 +1047,56 @@ describe('hoodie.store', function() {
   }); // #remove
 
   //
+  describe('#removeAll(filter)', function() {
+
+    it('should return a promise', function() {
+      var promise = this.storeBackend.removeAll();
+      expect(promise).to.be.promise();
+    });
+
+    _when('there are two cats, Binding & lager', function() {
+      beforeEach(function() {
+        var findAllDefer = this.hoodie.defer();
+        this.removeDefer = this.hoodie.defer();
+        this.store.findAll.returns(findAllDefer.promise());
+        this.store.remove.returns(this.removeDefer.promise());
+        this.promise = this.storeBackend.removeAll();
+
+        findAllDefer.resolve([
+          {type: 'cat', id: '1', name: 'Binding'},
+          {type: 'cat', id: '2', name: 'Lager'}
+        ]);
+      });
+
+      it('should remove all objects returned by findAll and call remove on them', function() {
+        expect(this.store.findAll).to.be.called();
+        expect(this.store.remove).to.be.calledWith('cat', '1', undefined);
+        expect(this.store.remove).to.be.calledWith('cat', '2', undefined);
+      });
+
+      _and('both remove calls succedd', function() {
+        beforeEach(function() {
+          this.removeDefer.resolve({some: 'cat'});
+        });
+
+        it('resolves with the results of the store.remove calls', function() {
+          expect(this.promise).to.be.resolvedWith([{some: 'cat'}, {some: 'cat'}]);
+        });
+      });
+
+      _but('the remove calls fail', function() {
+        beforeEach(function() {
+          this.removeDefer.reject('ooops');
+        });
+
+        it('resolves with the results of the store.remove calls', function() {
+          expect(this.promise).to.be.rejectedWith('ooops');
+        });
+      });
+    });
+  }); // #removeAll
+
+  //
   describe('#clear()', function() {
 
     it('should return a promise', function() {

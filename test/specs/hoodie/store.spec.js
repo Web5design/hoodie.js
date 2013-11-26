@@ -418,9 +418,9 @@ describe('hoodieStoreApi', function() {
     });
 
     it('should resolve the returned promise once all objects have been updated', function() {
-      var promise = this.hoodie.defer().resolve().promise();
+      var promise = this.hoodie.defer().resolve('todo').promise();
       this.sandbox.stub(this.store, 'update').returns(promise);
-      expect(this.store.updateAll(this.todoObjects, {})).to.be.resolved();
+      expect(this.store.updateAll(this.todoObjects, {})).to.be.resolvedWith(['todo','todo','todo']);
     });
 
     it('should not resolve the returned promise unless object updates have been finished', function() {
