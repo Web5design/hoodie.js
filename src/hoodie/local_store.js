@@ -130,6 +130,7 @@ function hoodieStore (hoodie) {
     try {
       object = cache(object.type, object.id, object, options);
       defer.resolve(object, isNew).promise();
+
       event = isNew ? 'add' : 'update';
       triggerEvents(event, object, options);
     } catch (_error) {
@@ -353,7 +354,11 @@ function hoodieStore (hoodie) {
       });
     }
 
-    if (arguments.length > 0 && HoodieObjectIdError.isInvalid(object.id)) {
+    if (!object.id) {
+      return;
+    }
+
+    if (HoodieObjectIdError.isInvalid(object.id)) {
       return new HoodieObjectIdError({
         id: object.id
       });
@@ -762,7 +767,7 @@ function hoodieStore (hoodie) {
 
   //
   // all local changes get bulk pushed. For each object with local
-  // changes that has been pushed we  trigger a sync event
+  // changes that has been pushed we trigger a sync event
   function handlePushedObject(object) {
     triggerEvents('sync', object);
   }
@@ -843,19 +848,9 @@ function hoodieStore (hoodie) {
     store.trigger(eventName, $.extend(true, {}, object), options);
     store.trigger(object.type + ':' + eventName, $.extend(true, {}, object), options);
 
-    // DEPRECATED
-    // https://github.com/hoodiehq/hoodie.js/issues/146
-    store.trigger(eventName + ':' + object.type, $.extend(true, {}, object), options);
-
     if (eventName !== 'new') {
       store.trigger( object.type + ':' + object.id+ ':' + eventName, $.extend(true, {}, object), options);
-
-      // DEPRECATED
-      // https://github.com/hoodiehq/hoodie.js/issues/146
-      store.trigger( eventName + ':' + object.type + ':' + object.id, $.extend(true, {}, object), options);
     }
-
-
 
     // sync events have no changes, so we don't trigger
     // "change" events.
@@ -866,17 +861,8 @@ function hoodieStore (hoodie) {
     store.trigger('change', eventName, $.extend(true, {}, object), options);
     store.trigger(object.type + ':change', eventName, $.extend(true, {}, object), options);
 
-    // DEPRECATED
-    // https://github.com/hoodiehq/hoodie.js/issues/146
-    store.trigger('change:' + object.type, eventName, $.extend(true, {}, object), options);
-
-
     if (eventName !== 'new') {
       store.trigger(object.type + ':' + object.id + ':change', eventName, $.extend(true, {}, object), options);
-
-      // DEPRECATED
-      // https://github.com/hoodiehq/hoodie.js/issues/146
-      store.trigger('change:' + object.type + ':' + object.id, eventName, $.extend(true, {}, object), options);
     }
   }
 
